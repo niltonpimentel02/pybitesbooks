@@ -40,9 +40,7 @@ click-repl==0.2.0
 confusable-homoglyphs==3.2.0
     # via django-registration
 coverage[toml]==6.5.0
-    # via
-    #   coverage
-    #   pytest-cov
+    # via pytest-cov
 dj-database-url==1.0.0
     # via -r requirements.in
 django==4.1.13
@@ -57,7 +55,7 @@ django-registration==3.3
     # via -r requirements.in
 gunicorn==20.1.0
     # via -r requirements.in
-idna==2.10
+idna==3.7
     # via requests
 iniconfig==1.1.1
     # via pytest
