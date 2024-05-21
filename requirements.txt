@@ -95,7 +95,7 @@ pytz==2022.6
     # via celery
 redis==4.5.4
     # via -r requirements.in
-requests==2.31.0
+requests==2.32.0
     # via -r requirements.in
 sendgrid==6.9.7
     # via -r requirements.in
