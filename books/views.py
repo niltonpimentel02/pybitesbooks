@@ -13,12 +13,19 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import pytz
 
-from .goodreads import (BookImportStatus,
-                        GOOGLE_TO_GOODREADS_READ_STATUSES)
+from .goodreads import BookImportStatus, GOOGLE_TO_GOODREADS_READ_STATUSES
 from .googlebooks import get_book_info
 from .forms import UserBookForm, ImportBooksForm
-from .models import (Category, Book, UserBook, BookNote, ImportedBook,
-                     READING, COMPLETED, TO_READ)
+from .models import (
+    Category,
+    Book,
+    UserBook,
+    BookNote,
+    ImportedBook,
+    READING,
+    COMPLETED,
+    TO_READ,
+)
 from .tasks import retrieve_google_books
 from goal.models import Goal
 from lists.models import UserList
@@ -27,12 +34,16 @@ MIN_NUM_BOOKS_SHOW_SEARCH = 20
 TO_ADD = BookImportStatus.TO_BE_ADDED.name
 NOT_FOUND = BookImportStatus.COULD_NOT_FIND.name
 REQUIRED_GOODREADS_FIELDS = (
-    "Title", "Author", "Exclusive Shelf",
-    "Date Read", "Date Added", "Book Id"
+    "Title",
+    "Author",
+    "Exclusive Shelf",
+    "Date Read",
+    "Date Added",
+    "Book Id",
 )
-UserStats = namedtuple('UserStats', ["num_books_added",
-                                     "num_books_done",
-                                     "num_pages_read"])
+UserStats = namedtuple(
+    "UserStats", ["num_books_added", "num_books_done", "num_pages_read"]
+)
 
 
 def book_page(request, bookid):
@@ -41,8 +52,8 @@ def book_page(request, bookid):
     try:
         book = get_book_info(bookid)
     except KeyError:
-        messages.error(request, f'Could not retrieve book {bookid}')
-        return redirect('index')
+        messages.error(request, f"Could not retrieve book {bookid}")
+        return redirect("index")
 
     userbook = None
     if request.user.is_authenticated:
@@ -52,116 +63,113 @@ def book_page(request, bookid):
             pass
 
     # a form was submitted
-    book_edit = post.get('addOrEditBook')
-    note_submit = post.get('noteSubmit')
+    book_edit = post.get("addOrEditBook")
+    note_submit = post.get("noteSubmit")
 
     # book form
     if book_edit:
-        status = post.get('status')
-        completed = post.get('completed') or None
+        status = post.get("status")
+        completed = post.get("completed") or None
 
         userlists = post.getlist("userlists[]", [])
         booklists = UserList.objects.filter(name__in=userlists)
 
         if completed:
-            completed = timezone.datetime.strptime(completed, '%Y-%m-%d')
+            completed = timezone.datetime.strptime(completed, "%Y-%m-%d")
 
         # this works without pk because Userbook has max 1 entry for user+book
-        userbook, created = UserBook.objects.get_or_create(book=book,
-                                                           user=request.user)
+        userbook, created = UserBook.objects.get_or_create(book=book, user=request.user)
         userbook.booklists.set(booklists)
 
         action = None
         if created:
-            action = 'added'
+            action = "added"
         elif userbook.user != request.user:
-            messages.error(request, 'You can only edit your own books')
-            return redirect('book_page')
+            messages.error(request, "You can only edit your own books")
+            return redirect("book_page")
 
-        if post.get('deleteBook'):
-            action = 'deleted'
+        if post.get("deleteBook"):
+            action = "deleted"
             userbook.delete()
             userbook = None
         else:
-            action = 'updated'
+            action = "updated"
             userbook.status = status
             userbook.completed = completed
             userbook.save()
 
-        messages.success(request, f'Successfully {action} book')
+        messages.success(request, f"Successfully {action} book")
 
     # note form (need a valid userbook object!)
     elif userbook and note_submit:
-        type_note = post.get('type_note')
-        description = post.get('description')
-        public = post.get('public') and True or False
+        type_note = post.get("type_note")
+        description = post.get("description")
+        public = post.get("public") and True or False
 
-        noteid = post.get('noteid')
+        noteid = post.get("noteid")
         action = None
         # delete/ update
         if noteid:
             try:
                 usernote = BookNote.objects.get(pk=noteid, user=request.user)
             except BookNote.DoesNotExist:
-                messages.error(request, 'Note does not exist for this user')
-                return redirect('book_page')
+                messages.error(request, "Note does not exist for this user")
+                return redirect("book_page")
 
             if usernote:
-                if post.get('deleteNote'):
-                    action = 'deleted'
+                if post.get("deleteNote"):
+                    action = "deleted"
                     usernote.delete()
                     usernote = None
                 else:
-                    action = 'updated'
+                    action = "updated"
                     usernote.type_note = type_note
                     usernote.description = description
                     usernote.public = public
                     usernote.save()
         # add
         else:
-            action = 'added'
-            usernote = BookNote(user=request.user,
-                                book=book,
-                                userbook=userbook,
-                                type_note=type_note,
-                                description=description,
-                                public=public)
+            action = "added"
+            usernote = BookNote(
+                user=request.user,
+                book=book,
+                userbook=userbook,
+                type_note=type_note,
+                description=description,
+                public=public,
+            )
             usernote.save()
 
-        messages.success(request, f'Successfully {action} note')
+        messages.success(request, f"Successfully {action} note")
 
     # prepare book form (note form = multiple = best manual)
     if userbook:
         # make sure to bounce back previously entered form values
         book_form = UserBookForm(
-            initial=dict(status=userbook.status,
-                         completed=userbook.completed))
+            initial=dict(status=userbook.status, completed=userbook.completed)
+        )
     else:
         book_form = UserBookForm()
 
     # all notes (do last as new note might have been added)
-    book_notes = BookNote.objects.select_related('user')
+    book_notes = BookNote.objects.select_related("user")
     if request.user.is_authenticated:
-        filter_criteria = (
-            Q(book=book) & (Q(user=request.user) | Q(public=True))
-        )
+        filter_criteria = Q(book=book) & (Q(user=request.user) | Q(public=True))
         notes = book_notes.filter(filter_criteria)
     else:
         notes = book_notes.filter(book=book, public=True)
-    notes = notes.order_by('-edited').all()
+    notes = notes.order_by("-edited").all()
 
     # userbooks has some dup, make sure we deduplicate
     # them for template display
     book_users = sorted(
         {
-            ub.user for ub in
-            UserBook.objects.select_related(
-                'user'
-            ).filter(
+            ub.user
+            for ub in UserBook.objects.select_related("user").filter(
                 book=book, status=COMPLETED
             )
         },
-        key=lambda user: user.username.lower()
+        key=lambda user: user.username.lower(),
     )
 
     user_lists = []
@@ -173,29 +181,35 @@ def book_page(request, bookid):
         userbook_lists = {ul.name for ul in userbook.booklists.all()}
 
     book_on_lists = [
-        ul.userlist.name for ul in
-        UserBook.booklists.through.objects.select_related(
-            'userbook__book'
+        ul.userlist.name
+        for ul in UserBook.booklists.through.objects.select_related(
+            "userbook__book"
         ).filter(userbook__book=book)
     ]
 
-    return render(request, 'book.html', {'book': book,
-                                         'notes': notes,
-                                         'userbook': userbook,
-                                         'userbook_lists': userbook_lists,
-                                         'book_form': book_form,
-                                         'book_users': book_users,
-                                         'user_lists': user_lists,
-                                         'book_on_lists': book_on_lists})
+    return render(
+        request,
+        "book.html",
+        {
+            "book": book,
+            "notes": notes,
+            "userbook": userbook,
+            "userbook_lists": userbook_lists,
+            "book_form": book_form,
+            "book_users": book_users,
+            "user_lists": user_lists,
+            "book_on_lists": book_on_lists,
+        },
+    )
 
 
 def books_per_category(request, category_name):
     category = get_object_or_404(Category, name=category_name)
-    user_books = UserBook.objects.select_related(
-        "book", "user"
-    ).filter(
-        book__categories__id=category.id
-    ).all()
+    user_books = (
+        UserBook.objects.select_related("book", "user")
+        .filter(book__categories__id=category.id)
+        .all()
+    )
 
     users_by_bookid = defaultdict(set)
     for ub in user_books:
@@ -209,30 +223,26 @@ def books_per_category(request, category_name):
 
     # only show books added by users (vs. just navigated)
     # there are some dups in db unfortunately
-    books = sorted({ub.book for ub in user_books},
-                   key=lambda book: book.title.lower())
+    books = sorted({ub.book for ub in user_books}, key=lambda book: book.title.lower())
 
     context = {
         "category": category,
         "books": books,
         "users_by_bookid": users_by_bookid_sorted,
     }
-    return render(request, 'category.html', context)
+    return render(request, "category.html", context)
 
 
 def get_user_goal(user):
     try:
-        goal = Goal.objects.get(year=date.today().year,
-                                user=user,
-                                number_books__gt=0)
+        goal = Goal.objects.get(year=date.today().year, user=user, number_books__gt=0)
     except Goal.DoesNotExist:
         goal = None
     return goal
 
 
 def group_userbooks_by_status(books):
-    userbooks = OrderedDict(
-        [(READING, []), (COMPLETED, []), (TO_READ, [])])
+    userbooks = OrderedDict([(READING, []), (COMPLETED, []), (TO_READ, [])])
     for book in books:
         userbooks[book.status].append(book)
     return userbooks
@@ -241,13 +251,14 @@ def group_userbooks_by_status(books):
 def get_num_pages_read(books):
     return sum(
         int(book.book.pages) if str(book.book.pages).isdigit() else 0
-        for book in books if book.done_reading)
+        for book in books
+        if book.done_reading
+    )
 
 
 def user_page(request, username):
     user = get_object_or_404(User, username=username)
-    user_books = UserBook.objects.select_related('book').filter(
-        user=user)
+    user_books = UserBook.objects.select_related("book").filter(user=user)
 
     completed_books_this_year, perc_completed = [], 0
     goal = get_user_goal(user)
@@ -259,54 +270,59 @@ def user_page(request, username):
 
         if goal.number_books > 0:
             perc_completed = int(
-                completed_books_this_year.count() / goal.number_books * 100)
+                completed_books_this_year.count() / goal.number_books * 100
+            )
 
     is_me = request.user.is_authenticated and request.user == user
     share_goal = goal and (goal.share or is_me)
 
     grouped_user_books = group_userbooks_by_status(user_books)
 
-    user_stats = UserStats(num_books_added=len(user_books),
-                           num_books_done=len(grouped_user_books[COMPLETED]),
-                           num_pages_read=get_num_pages_read(user_books))
+    user_stats = UserStats(
+        num_books_added=len(user_books),
+        num_books_done=len(grouped_user_books[COMPLETED]),
+        num_pages_read=get_num_pages_read(user_books),
+    )
     user_lists = UserList.objects.filter(user=user)
 
-    return render(request, 'user.html',
-                  {'grouped_user_books': grouped_user_books,
-                   'username': username,
-                   'user_stats': user_stats,
-                   'goal': goal,
-                   'share_goal': share_goal,
-                   'completed_books_this_year': completed_books_this_year,
-                   'perc_completed': perc_completed,
-                   'min_books_search': MIN_NUM_BOOKS_SHOW_SEARCH,
-                   'is_me': is_me,
-                   'user_lists': user_lists})
+    return render(
+        request,
+        "user.html",
+        {
+            "grouped_user_books": grouped_user_books,
+            "username": username,
+            "user_stats": user_stats,
+            "goal": goal,
+            "share_goal": share_goal,
+            "completed_books_this_year": completed_books_this_year,
+            "perc_completed": perc_completed,
+            "min_books_search": MIN_NUM_BOOKS_SHOW_SEARCH,
+            "is_me": is_me,
+            "user_lists": user_lists,
+        },
+    )
 
 
 @xframe_options_exempt
 def user_page_widget(request, username):
     user = get_object_or_404(User, username=username)
-    books = UserBook.objects.select_related('book').filter(
-        user=user, status='c')
-    return render(request, 'widget.html', {'books': books})
+    books = UserBook.objects.select_related("book").filter(user=user, status="c")
+    return render(request, "widget.html", {"books": books})
 
 
 @login_required
 def user_favorite(request):
     user = request.user
-    book = request.GET.get('book')
-    checked = True if request.GET.get('checked') == "true" else False
+    book = request.GET.get("book")
+    checked = True if request.GET.get("checked") == "true" else False
     userbook = UserBook.objects.get(user__username=user, book__bookid=book)
     userbook.favorite = checked
     userbook.save()
     return JsonResponse({"status": "success"})
 
 
-def _is_valid_csv(file_content,
-                  required_fields=REQUIRED_GOODREADS_FIELDS):
-    reader = csv.DictReader(
-        StringIO(file_content), delimiter=',')
+def _is_valid_csv(file_content, required_fields=REQUIRED_GOODREADS_FIELDS):
+    reader = csv.DictReader(StringIO(file_content), delimiter=",")
     header = next(reader)
     return all(field in header for field in required_fields)
 
@@ -320,11 +336,10 @@ def import_books(request):
     imported_books = []
 
     if "delete_import" in post:
-        num_deleted, _ = ImportedBook.objects.filter(
-            user=request.user).delete()
+        num_deleted, _ = ImportedBook.objects.filter(user=request.user).delete()
         msg = f"Deleted import ({num_deleted} books)"
         messages.success(request, msg)
-        return redirect('books:import_books')
+        return redirect("books:import_books")
 
     elif "save_import_submit" in post:
         books_to_add = post.getlist("books_to_add")
@@ -332,18 +347,14 @@ def import_books(request):
         dates = post.getlist("dates")
 
         new_user_book_count = 0
-        for bookid, read_status, read_date in zip(
-            books_to_add, read_statuses, dates
-        ):
-            completed_dt = pytz.utc.localize(
-                datetime.strptime(read_date, '%Y-%m-%d'))
-            book = Book.objects.filter(
-                bookid=bookid).order_by("inserted").last()
+        for bookid, read_status, read_date in zip(books_to_add, read_statuses, dates):
+            completed_dt = pytz.utc.localize(datetime.strptime(read_date, "%Y-%m-%d"))
+            book = Book.objects.filter(bookid=bookid).order_by("inserted").last()
 
             # make sure we don't store books twice
             user_book, created = UserBook.objects.get_or_create(
-                user=request.user,
-                book=book)
+                user=request.user, book=book
+            )
 
             # if book is already in user's collection update status and
             # completed date
@@ -358,14 +369,12 @@ def import_books(request):
         ImportedBook.objects.filter(user=request.user).delete()
 
         messages.success(request, f"{new_user_book_count} books inserted")
-        return redirect('user_page', username=request.user.username)
+        return redirect("user_page", username=request.user.username)
 
     elif "import_books_submit" in post:
         import_form = ImportBooksForm(post, files)
         if import_form.is_valid():
-            file_content = (
-                files['file'].read().decode('utf-8')
-            )
+            file_content = files["file"].read().decode("utf-8")
             if not _is_valid_csv(file_content):
                 error = (
                     "Sorry, the provided csv file does "
@@ -374,28 +383,29 @@ def import_books(request):
                     f"{', '.join(REQUIRED_GOODREADS_FIELDS)})"
                 )
                 messages.error(request, error)
-                return redirect('books:import_books')
+                return redirect("books:import_books")
 
             username = request.user.username
 
-            retrieve_google_books.delay(
-                file_content, username)
+            retrieve_google_books.delay(file_content, username)
 
-            msg = ("Thanks, we're processing your goodreads csv file. "
-                   "We'll notify you by email when you can select "
-                   "books for import into your PyBites Books account.")
+            msg = (
+                "Thanks, we're processing your goodreads csv file. "
+                "We'll notify you by email when you can select "
+                "books for import into your PyBites Books account."
+            )
             messages.success(request, msg)
-            return redirect('books:import_books')
+            return redirect("books:import_books")
 
     elif is_preview:
-        imported_books = ImportedBook.objects.filter(
-            user=request.user).order_by('title')
-        num_add_books = imported_books.filter(
-            book_status=TO_ADD).count()
+        imported_books = ImportedBook.objects.filter(user=request.user).order_by(
+            "title"
+        )
+        num_add_books = imported_books.filter(book_status=TO_ADD).count()
         if num_add_books == 0:
             error = "No new books to be imported"
             messages.error(request, error)
-            return redirect('books:import_books')
+            return redirect("books:import_books")
 
     context = {
         "import_form": import_form,
@@ -404,4 +414,4 @@ def import_books(request):
         "to_add": TO_ADD,
         "all_read_statuses": GOOGLE_TO_GOODREADS_READ_STATUSES.items(),
     }
-    return render(request, 'import_books.html', context)
+    return render(request, "import_books.html", context)

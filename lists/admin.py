@@ -4,7 +4,7 @@ from .models import UserList
 
 
 class UserListAdmin(admin.ModelAdmin):
-    list_display = ('name', 'user')
+    list_display = ("name", "user")
 
 
 admin.site.register(UserList, UserListAdmin)

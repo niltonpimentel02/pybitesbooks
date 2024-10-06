@@ -5,7 +5,7 @@ from .models import UserBook
 
 
 class DateInput(forms.DateInput):
-    input_type = 'text'
+    input_type = "text"
 
 
 class ImportBooksForm(forms.Form):
@@ -13,10 +13,9 @@ class ImportBooksForm(forms.Form):
 
 
 class UserBookForm(ModelForm):
-
     class Meta:
         model = UserBook
-        fields = ['status', 'completed', 'booklists']
+        fields = ["status", "completed", "booklists"]
         widgets = {
-            'completed': DateInput(),
+            "completed": DateInput(),
         }

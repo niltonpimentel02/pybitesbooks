@@ -33,8 +33,7 @@ class Pomodoro(models.Model):
         return this_week(self.end)
 
     def __str__(self):
-        return (f'{self.user} - {self.minutes} '
-                f'({self.start}-{self.end})')
+        return f"{self.user} - {self.minutes} " f"({self.start}-{self.end})"
 
     class Meta:
-        ordering = ['-end']
+        ordering = ["-end"]

@@ -45,7 +45,7 @@ def books(django_db_setup, django_db_blocker, categories):
             isbn="978143021948463",
             pages=632,
             language="en",
-            description="Peter Seibel interviews 15 of the most ..."
+            description="Peter Seibel interviews 15 of the most ...",
         )
         book.save()
         book.categories.add(*categories[:2])
@@ -60,7 +60,7 @@ def books(django_db_setup, django_db_blocker, categories):
             isbn="978141658637144",
             pages=448,
             language="en",
-            description="Anthony Robbins calls it the ..."
+            description="Anthony Robbins calls it the ...",
         )
         book.save()
         book.categories.add(*categories[2:6])
@@ -75,7 +75,7 @@ def books(django_db_setup, django_db_blocker, categories):
             isbn="978140194507741",
             pages=412,
             language="en",
-            description="Imagine—what if you had access to a simple ..."
+            description="Imagine—what if you had access to a simple ...",
         )
         book.save()
         book.categories.add(*categories[6:9])
@@ -90,7 +90,7 @@ def books(django_db_setup, django_db_blocker, categories):
             isbn="9780975500354",
             pages=281,
             language="en",
-            description="NEW EDITION: Is it possible for a person of ..."
+            description="NEW EDITION: Is it possible for a person of ...",
         )
         book.save()
         book.categories.add(categories[9])
@@ -112,7 +112,7 @@ def two_books(django_db_setup, django_db_blocker, categories):
             isbn="9780765394866",
             pages=448,
             language="en",
-            description="This engaging, collectible, ..."
+            description="This engaging, collectible, ...",
         )
         book.save()
         book.categories.add(*categories[10:])
@@ -127,7 +127,7 @@ def two_books(django_db_setup, django_db_blocker, categories):
             isbn="9780575097445",
             pages=656,
             language="en",
-            description="Elantris was built on magic and it thrived ..."
+            description="Elantris was built on magic and it thrived ...",
         )
         book.save()
         # this one did not yield categories from Google Books API
@@ -140,9 +140,8 @@ def two_books(django_db_setup, django_db_blocker, categories):
 @pytest.fixture(scope="module")
 def user(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        username, password = "user1", 'bar'
-        return User.objects.create_user(
-            username=username, password=password)
+        username, password = "user1", "bar"
+        return User.objects.create_user(username=username, password=password)
 
 
 @pytest.fixture
@@ -154,10 +153,9 @@ def login(django_db_setup, django_db_blocker, client, user):
 @pytest.fixture(scope="module")
 def user_books(django_db_setup, django_db_blocker, books, user):
     with django_db_blocker.unblock():
-        statuses = cycle('r c'.split())
+        statuses = cycle("r c".split())
         user_books = [
-            UserBook(user=user, book=book, status=next(statuses))
-            for book in books
+            UserBook(user=user, book=book, status=next(statuses)) for book in books
         ]
         UserBook.objects.bulk_create(user_books)
         return UserBook.objects.all()
@@ -166,10 +164,9 @@ def user_books(django_db_setup, django_db_blocker, books, user):
 @pytest.fixture(scope="module")
 def user_fav_books(django_db_setup, django_db_blocker, two_books, user):
     with django_db_blocker.unblock():
-        statuses = cycle('r c'.split())
+        statuses = cycle("r c".split())
         user_books = [
-            UserBook(user=user, book=book, status=next(statuses),
-                     favorite=True)
+            UserBook(user=user, book=book, status=next(statuses), favorite=True)
             for book in two_books
         ]
         UserBook.objects.bulk_create(user_books)

@@ -2,9 +2,16 @@ from django.conf import settings
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import (Category, Book, Search, UserBook,
-                     BookNote, Badge, BookConversion,
-                     ImportedBook)
+from .models import (
+    Category,
+    Book,
+    Search,
+    UserBook,
+    BookNote,
+    Badge,
+    BookConversion,
+    ImportedBook,
+)
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -23,7 +30,11 @@ class SearchAdmin(admin.ModelAdmin):
 
 class UserBookAdmin(admin.ModelAdmin):
     list_display = ("user", "book", "status", "favorite", "completed", "inserted")
-    search_fields = ("user__username", "book__title", "book__bookid",)
+    search_fields = (
+        "user__username",
+        "book__title",
+        "book__bookid",
+    )
     list_filter = ("status", "favorite")
 
 
@@ -39,7 +50,8 @@ class BookNoteAdmin(admin.ModelAdmin):
             return f"{obj.description[:limit]} ..."
         else:
             return obj.description
-    short_desc.short_description = 'short description'
+
+    short_desc.short_description = "short description"
 
 
 class BadgeAdmin(admin.ModelAdmin):
@@ -55,12 +67,19 @@ class BookConversionAdmin(admin.ModelAdmin):
             f"<a href='{settings.DOMAIN}/books/{obj.googlebooks_id}' "
             f"target='_blank'>{obj.googlebooks_id}</a>"
         )
-    book_link.short_description = 'Google / PyBites book link'
+
+    book_link.short_description = "Google / PyBites book link"
 
 
 class ImportedBookAdmin(admin.ModelAdmin):
-    list_display = ("title", "book", "reading_status", "date_completed",
-                    "book_status", "user")
+    list_display = (
+        "title",
+        "book",
+        "reading_status",
+        "date_completed",
+        "book_status",
+        "user",
+    )
     search_fields = ("title",)
 
 

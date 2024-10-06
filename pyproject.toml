@@ -1,0 +1,12 @@
+[tool.ruff]
+# In addition to the standard set of exclusions, omit all tests, plus a specific file.
+extend-exclude = [
+    "*/migrations/*",
+    "*/templates/*",
+    "*/static/*",
+    "*.html",
+    "*.css",
+    "*.js",
+    "__init__.py",
+]
+force-exclude = true

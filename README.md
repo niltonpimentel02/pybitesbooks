@@ -8,12 +8,27 @@ Our simple yet effective reading tracking app: [PyBites Books](https://pybitesbo
 
 ## Setup
 
+![](https://img.shields.io/badge/Python-3.9.0-blue.svg)
+![](https://img.shields.io/badge/Django-4.1.13-blue.svg)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+
 1. Create a [virtual env](https://pybit.es/the-beauty-of-virtualenv.html) and activate it (`source venv/bin/activate`)
 2. Install the dependencies: `pip install -r requirements.txt`
 3. Create a database, e.g. `pybites_books` and define the full DB URL for the next step, e.g. `DATABASE_URL=postgres://postgres:password@0.0.0.0:5432/pybites_books`.
 4. Set this env variable together with `SECRET_KEY` in a file called `.env` in the root of the project: `cp .env-template .env && vi .env`. That's the bare minimum. If you want to have email working create a [Sendgrid](https://sendgrid.com/) account obtaining an API key. Same for Slack integration, this requires a `SLACK_VERIFICATION_TOKEN`. The other variables have sensible defaults.
 5. Sync the DB: `python manage.py migrate`.
 6. And finally run the app server: `python manage.py runserver`.
+
+## Run pre-commit
+
+Install the git hook scripts
+```bash
+ pre-commit install
+```
+Run against all the files:
+```bash
+ pre-commit run --all-files
+```
 
 ## Local Via docker-compose
 

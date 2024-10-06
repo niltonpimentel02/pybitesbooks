@@ -11,7 +11,7 @@ from books.models import Book, UserBook
 
 def get_users():
     user_books = defaultdict(list)
-    books = UserBook.objects.select_related('user').all()
+    books = UserBook.objects.select_related("user").all()
     for book in books:
         user_books[book.user.username].append(book)
     return user_books
@@ -20,48 +20,51 @@ def get_users():
 def get_user_last_book(username):
     user = get_object_or_404(User, username=username)
 
-    books = UserBook.objects.select_related('book')
-    books = books.filter(user=user).order_by('-inserted')
+    books = UserBook.objects.select_related("book")
+    books = books.filter(user=user).order_by("-inserted")
     if not books:
         raise Http404
 
     book = books[0]
-    data = dict(bookid=book.book.bookid,
-                title=book.book.title,
-                url=book.book.url,
-                authors=book.book.authors,
-                published=book.book.published,
-                isbn=book.book.isbn,
-                pages=book.book.pages,
-                language=book.book.language,
-                description=book.book.description,
-                imagesize=book.book.imagesize)
+    data = dict(
+        bookid=book.book.bookid,
+        title=book.book.title,
+        url=book.book.url,
+        authors=book.book.authors,
+        published=book.book.published,
+        isbn=book.book.isbn,
+        pages=book.book.pages,
+        language=book.book.language,
+        description=book.book.description,
+        imagesize=book.book.imagesize,
+    )
     return data
 
 
 def get_user_books(username):
     data = defaultdict(list)
     user = get_object_or_404(User, username=username)
-    books = UserBook.objects.select_related('book').filter(user=user)
+    books = UserBook.objects.select_related("book").filter(user=user)
 
     for book in books:
-        row = dict(bookid=book.book.bookid,
-                   title=book.book.title,
-                   url=book.book.url,
-                   authors=book.book.authors,
-                   favorite=book.favorite,
-                   published=book.book.published,
-                   isbn=book.book.isbn,
-                   pages=book.book.pages,
-                   language=book.book.language,
-                   description=book.book.description,
-                   imagesize=book.book.imagesize)
+        row = dict(
+            bookid=book.book.bookid,
+            title=book.book.title,
+            url=book.book.url,
+            authors=book.book.authors,
+            favorite=book.favorite,
+            published=book.book.published,
+            isbn=book.book.isbn,
+            pages=book.book.pages,
+            language=book.book.language,
+            description=book.book.description,
+            imagesize=book.book.imagesize,
+        )
         data[book.status].append(row)
     return data
 
 
 def user_books(request, username=None):
-
     if username is None:
         data = get_users()
     else:
@@ -69,11 +72,11 @@ def user_books(request, username=None):
 
     json_data = json.dumps(data, indent=4, default=str, sort_keys=False)
 
-    return HttpResponse(json_data, content_type='application/json')
+    return HttpResponse(json_data, content_type="application/json")
 
 
 def get_random_book(grep=None):
-    books = UserBook.objects.select_related('book').all()
+    books = UserBook.objects.select_related("book").all()
 
     if grep is not None:
         books = books.filter(book__title__icontains=grep.lower())
@@ -84,16 +87,18 @@ def get_random_book(grep=None):
         count = books.count()
         book = books[randint(0, count - 1)]
 
-    data = dict(bookid=book.book.bookid,
-                title=book.book.title,
-                url=book.book.url,
-                authors=book.book.authors,
-                published=book.book.published,
-                isbn=book.book.isbn,
-                pages=book.book.pages,
-                language=book.book.language,
-                description=book.book.description,
-                imagesize=book.book.imagesize)
+    data = dict(
+        bookid=book.book.bookid,
+        title=book.book.title,
+        url=book.book.url,
+        authors=book.book.authors,
+        published=book.book.published,
+        isbn=book.book.isbn,
+        pages=book.book.pages,
+        language=book.book.language,
+        description=book.book.description,
+        imagesize=book.book.imagesize,
+    )
 
     return data
 
@@ -104,7 +109,7 @@ def random_book(request, grep=None):
 
     json_data = json.dumps(data, indent=4, default=str, sort_keys=False)
 
-    return HttpResponse(json_data, content_type='application/json')
+    return HttpResponse(json_data, content_type="application/json")
 
 
 def get_bookid(request, bookid):
@@ -113,29 +118,31 @@ def get_bookid(request, bookid):
         raise Http404
 
     book = books[0]
-    data = dict(bookid=book.bookid,
-                title=book.title,
-                url=book.url,
-                authors=book.authors,
-                publisher=book.publisher,
-                published=book.published,
-                isbn=book.isbn,
-                pages=book.pages,
-                language=book.language,
-                description=book.description,
-                imagesize=book.imagesize)
+    data = dict(
+        bookid=book.bookid,
+        title=book.title,
+        url=book.url,
+        authors=book.authors,
+        publisher=book.publisher,
+        published=book.published,
+        isbn=book.isbn,
+        pages=book.pages,
+        language=book.language,
+        description=book.description,
+        imagesize=book.imagesize,
+    )
 
     json_data = json.dumps(data, indent=4, default=str, sort_keys=False)
 
-    return HttpResponse(json_data, content_type='application/json')
+    return HttpResponse(json_data, content_type="application/json")
 
 
 def get_book_list(request, name):
-    books = UserBook.objects.select_related(
-        "book"
-    ).filter(
-        booklists__name=name
-    ).order_by("book__title")
+    books = (
+        UserBook.objects.select_related("book")
+        .filter(booklists__name=name)
+        .order_by("book__title")
+    )
 
     if not books:
         raise Http404
@@ -148,30 +155,30 @@ def get_book_list(request, name):
             url=book.book.url,
             authors=book.book.authors,
             pages=book.book.pages,
-            description=book.book.description)
+            description=book.book.description,
+        )
         data.append(book_obj)
 
     return HttpResponse(
-        json.dumps(
-            data, indent=4, default=str, sort_keys=False),
-        content_type='application/json'
+        json.dumps(data, indent=4, default=str, sort_keys=False),
+        content_type="application/json",
     )
 
 
 def get_book_stats(request, username):
-    user_books = UserBook.objects.select_related(
-        'book'
-    ).filter(user__username=username)
+    user_books = UserBook.objects.select_related("book").filter(user__username=username)
 
     data = []
     for user_book in user_books:
-        row = dict(bookid=user_book.book.bookid,
-                   title=user_book.book.title,
-                   url=user_book.book.url,
-                   status=user_book.status,
-                   favorite=user_book.favorite,
-                   completed=user_book.completed)
+        row = dict(
+            bookid=user_book.book.bookid,
+            title=user_book.book.title,
+            url=user_book.book.url,
+            status=user_book.status,
+            favorite=user_book.favorite,
+            completed=user_book.completed,
+        )
         data.append(row)
 
     json_data = json.dumps(data, indent=4, default=str, sort_keys=False)
-    return HttpResponse(json_data, content_type='application/json')
+    return HttpResponse(json_data, content_type="application/json")
