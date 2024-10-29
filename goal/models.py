@@ -15,5 +15,7 @@ class Goal(models.Model):
     share = models.BooleanField(default=False)
 
     def __str__(self):
-        return (f'{self.user} => {self.number_books} '
-                f'(in {self.year} / shared: {self.share})')
+        return (
+            f"{self.user} => {self.number_books} "
+            f"(in {self.year} / shared: {self.share})"
+        )

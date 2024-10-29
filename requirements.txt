@@ -72,6 +72,7 @@ pip-tools==6.10.0
     # via -r requirements.in
 pluggy==0.13.1
     # via pytest
+pre_commit==4.0.0
 prompt-toolkit==3.0.20
     # via click-repl
 psycopg2-binary==2.9.5

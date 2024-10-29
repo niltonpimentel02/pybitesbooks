@@ -5,11 +5,11 @@ from django.utils import timezone
 
 from lists.models import UserList
 
-READING = 'r'
-COMPLETED = 'c'
-TO_READ = 't'
-QUOTE = 'q'
-NOTE = 'n'
+READING = "r"
+COMPLETED = "c"
+TO_READ = "t"
+QUOTE = "q"
+NOTE = "n"
 
 
 class Category(models.Model):
@@ -35,24 +35,26 @@ class Book(models.Model):
     imagesize = models.CharField(max_length=2, default="1")
     inserted = models.DateTimeField(auto_now_add=True)
     edited = models.DateTimeField(auto_now=True)
-    categories = models.ManyToManyField(Category, related_name='categories')
+    categories = models.ManyToManyField(Category, related_name="categories")
 
     @property
     def title_and_authors(self):
-        return f'{self.title} ({self.authors})'
+        return f"{self.title} ({self.authors})"
 
     @property
     def url(self):
-        return f'{settings.DOMAIN}/books/{self.bookid}'
+        return f"{settings.DOMAIN}/books/{self.bookid}"
 
     def __str__(self):
-        return f'{self.id} {self.bookid} {self.title}'
+        return f"{self.id} {self.bookid} {self.title}"
 
     def __repr__(self):
-        return (f"{self.__class__.__name__}('{self.id}', "
-                f"'{self.bookid}', '{self.title}', '{self.authors}', "
-                f"'{self.publisher}', '{self.published}', '{self.isbn}', "
-                f"'{self.pages}', '{self.language}', '{self.description}')")
+        return (
+            f"{self.__class__.__name__}('{self.id}', "
+            f"'{self.bookid}', '{self.title}', '{self.authors}', "
+            f"'{self.publisher}', '{self.published}', '{self.isbn}', "
+            f"'{self.pages}', '{self.language}', '{self.description}')"
+        )
 
 
 class Search(models.Model):
@@ -69,17 +71,16 @@ class Search(models.Model):
 
 class UserBook(models.Model):
     READ_STATUSES = (
-        (READING, 'I am reading this book'),
-        (COMPLETED, 'I have completed this book'),
-        (TO_READ, 'I want to read this book'),  # t of 'todo'
+        (READING, "I am reading this book"),
+        (COMPLETED, "I have completed this book"),
+        (TO_READ, "I want to read this book"),  # t of 'todo'
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    status = models.CharField(max_length=1, choices=READ_STATUSES,
-                              default=COMPLETED)
+    status = models.CharField(max_length=1, choices=READ_STATUSES, default=COMPLETED)
     favorite = models.BooleanField(default=False)
     completed = models.DateTimeField(default=timezone.now)
-    booklists = models.ManyToManyField(UserList, related_name='booklists')
+    booklists = models.ManyToManyField(UserList, related_name="booklists")
     inserted = models.DateTimeField(auto_now_add=True)  # != completed
     updated = models.DateTimeField(auto_now=True)
 
@@ -88,21 +89,23 @@ class UserBook(models.Model):
         return self.status == COMPLETED
 
     def __str__(self):
-        return f'{self.user} {self.book} {self.status} {self.completed}'
+        return f"{self.user} {self.book} {self.status} {self.completed}"
 
     class Meta:
         # -favorite - False sorts before True so need to reverse
-        ordering = ['-favorite', '-completed', '-id']
+        ordering = ["-favorite", "-completed", "-id"]
 
 
 class BookNote(models.Model):
     NOTE_TYPES = (
-        (QUOTE, 'Quote'),
-        (NOTE, 'Note'),
+        (QUOTE, "Quote"),
+        (NOTE, "Note"),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE, blank=True, null=True)
-    userbook = models.ForeignKey(UserBook, on_delete=models.CASCADE, blank=True, null=True)
+    userbook = models.ForeignKey(
+        UserBook, on_delete=models.CASCADE, blank=True, null=True
+    )
     type_note = models.CharField(max_length=1, choices=NOTE_TYPES, default=NOTE)
     description = models.TextField()
     public = models.BooleanField(default=False)
@@ -121,7 +124,7 @@ class BookNote(models.Model):
         return None
 
     def __str__(self):
-        return f'{self.user} {self.userbook} {self.type_note} {self.description} {self.public}'
+        return f"{self.user} {self.userbook} {self.type_note} {self.description} {self.public}"
 
 
 class Badge(models.Model):
@@ -129,28 +132,29 @@ class Badge(models.Model):
     title = models.CharField(max_length=50)
 
     def __str__(self):
-        return f'{self.books} -> {self.title}'
+        return f"{self.books} -> {self.title}"
 
 
 class BookConversion(models.Model):
     """Cache table to store goodreads -> Google Books mapping"""
+
     goodreads_id = models.CharField(max_length=20)
     googlebooks_id = models.CharField(max_length=20, null=True, blank=True)
     inserted = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.goodreads_id} -> {self.googlebooks_id}'
+        return f"{self.goodreads_id} -> {self.googlebooks_id}"
 
 
 class ImportedBook(models.Model):
     """Cache table for preview goodreads import data"""
+
     title = models.TextField()
-    book = models.ForeignKey(Book, on_delete=models.CASCADE,
-                             null=True, blank=True)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True, blank=True)
     reading_status = models.CharField(max_length=20)
     date_completed = models.DateTimeField()
     book_status = models.CharField(max_length=20)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.user} -> {self.title}'
+        return f"{self.user} -> {self.title}"

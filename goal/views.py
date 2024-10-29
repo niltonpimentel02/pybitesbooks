@@ -14,28 +14,27 @@ def set_goal(request):
 
     # take the current year, so switches to new challenge
     # when the new year starts
-    goal, _ = Goal.objects.get_or_create(user=user,
-                                         year=date.today().year)
+    goal, _ = Goal.objects.get_or_create(user=user, year=date.today().year)
 
-    if 'deleteGoal' in post:
+    if "deleteGoal" in post:
         goal.delete()
-        messages.success(request, 'You deleted your goal')
+        messages.success(request, "You deleted your goal")
 
-    elif 'updateGoal' in post:
+    elif "updateGoal" in post:
         try:
-            num_books = int(post.get('numBooks', 0))
+            num_books = int(post.get("numBooks", 0))
         except ValueError:
-            error = 'Please provide a numeric value'
+            error = "Please provide a numeric value"
             messages.error(request, error)
         else:
             old_number = goal.number_books
 
             goal.number_books = num_books
-            goal.share = post.get('share', False)
+            goal.share = post.get("share", False)
             goal.save()
 
-            action = 'added' if old_number == 0 else 'updated'
-            msg = f'Successfully {action} goal for {goal.year}'
+            action = "added" if old_number == 0 else "updated"
+            msg = f"Successfully {action} goal for {goal.year}"
             messages.success(request, msg)
 
-    return render(request, 'goal.html', {'goal': goal})
+    return render(request, "goal.html", {"goal": goal})
