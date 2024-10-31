@@ -16,3 +16,4 @@ sendgrid==6.9.7
 sentry-sdk==2.8.0
 toml==0.10.2
 whitenoise==6.2.0
+pre_commit==4.0.0
