@@ -1,3 +1,30 @@
+[project]
+name = "pybitesbooks"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "celery==5.2.7",
+    "dj-database-url==1.0.0",
+    "django-debug-toolbar==3.7.0",
+    "django-registration==3.3",
+    "django==4.1.13",
+    "gunicorn==22.0.0",
+    "pre-commit==4.0.0",
+    "psycopg2-binary==2.9.5",
+    "pytest-cov==4.0.0",
+    "pytest-django==4.5.2",
+    "pytest==7.2.0",
+    "python-decouple==3.6",
+    "redis==4.5.4",
+    "requests==2.32.0",
+    "sendgrid==6.9.7",
+    "sentry-sdk==2.8.0",
+    "toml==0.10.2",
+    "whitenoise==6.2.0",
+]
+
 [tool.ruff]
 # In addition to the standard set of exclusions, omit all tests, plus a specific file.
 extend-exclude = [
